@@ -9,7 +9,7 @@ workflows:
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
 
-      - name: Build Nova APK
+      - name: Build Nova debug APK
         script: |
           chmod +x ./gradlew
           ./gradlew assembleDebug
