@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/bg">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="NOVA" android:textColor="@color/text_primary" android:textSize="28sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Local assistant settings" android:textColor="@color/text_secondary" android:textSize="14sp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="18dp" android:padding="16dp" android:background="@drawable/bg_card">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="LOCAL AI BRAIN" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="15sp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Nova uses llama.cpp + a GGUF model directly on this phone. No OpenAI, Gemini, Claude, OpenRouter or API key is used for reasoning." android:textColor="@color/text_secondary" android:textSize="13sp" />
+            <Spinner android:id="@+id/providerSpinner" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" />
+            <EditText android:id="@+id/apiKeyInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="No API key required" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" />
+            <EditText android:id="@+id/modelInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="GGUF model" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" />
+            <EditText android:id="@+id/endpointInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="No cloud endpoint" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" />
+            <TextView android:id="@+id/modelStatusText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/text_secondary" android:textSize="13sp" />
+            <Button android:id="@+id/testButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="8dp" android:text="DOWNLOAD / LOAD LOCAL AI MODEL" />
+            <Button android:id="@+id/loadModelButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="6dp" android:text="LOAD GGUF FILE FROM PHONE" />
+            <Button android:id="@+id/saveButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="6dp" android:text="DONE" />
+            <Button android:id="@+id/clearConversationButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="6dp" android:text="CLEAR CHAT HISTORY" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="12dp" android:padding="16dp" android:background="@drawable/bg_card">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="MUSIC CONTROL" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="15sp" />
+            <Spinner android:id="@+id/musicAppSpinner" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" />
+            <Button android:id="@+id/musicAccessButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="8dp" android:text="ENABLE MUSIC CONTROL ACCESS" />
+        </LinearLayout>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:padding="8dp" android:text="Some Android operations remain protected by the OS. Nova cannot bypass permissions or silently perform restricted actions." android:textColor="@color/text_secondary" android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>
