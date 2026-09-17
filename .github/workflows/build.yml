@@ -24,6 +24,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
+        with:
+          cmdline-tools-version: '11076708'
+          packages: ''
 
       - name: Install Android SDK components
         run: |
@@ -36,33 +39,51 @@ jobs:
             "ndk;27.0.12077973" \
             "cmake;3.22.1"
 
-      - name: Verify native toolchain
+      - name: Verify Android native toolchain
         run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
           test -f "$ANDROID_SDK_ROOT/ndk/27.0.12077973/source.properties"
+
           test -f "$ANDROID_SDK_ROOT/cmake/3.22.1/bin/cmake"
 
           "$ANDROID_SDK_ROOT/cmake/3.22.1/bin/cmake" --version
+
+          "$ANDROID_SDK_ROOT/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" --version
 
       - name: Configure native environment
         run: |
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> "$GITHUB_ENV"
+
           echo "$ANDROID_SDK_ROOT/cmake/3.22.1/bin" >> "$GITHUB_PATH"
+
           echo "$ANDROID_SDK_ROOT/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_PATH"
 
       - name: Make Gradle executable
-        run: chmod +x ./gradlew
+        run: |
+          chmod +x ./gradlew
 
-      - name: Check Gradle project
+      - name: Check Gradle
         run: |
           ./gradlew --version
+
+      - name: Show Gradle projects
+        run: |
           ./gradlew projects --no-daemon
 
       - name: Build Nova Debug APK
         run: |
           ./gradlew assembleDebug --no-daemon --stacktrace
 
+      - name: Find generated APK
+        if: success()
+        run: |
+          echo "Generated APK files:"
+          find . -type f -path "*/build/outputs/apk/debug/*.apk" -print
+
       - name: Upload Nova APK
+        if: success()
         uses: actions/upload-artifact@v6
         with:
           name: Nova-debug-apk
