@@ -2,6 +2,9 @@
 
 #include <android/log.h>
 #include <cstdarg>
+#include <cstdio>
+
+#include "llama.h"
 
 #ifndef LOG_TAG
 #define LOG_TAG "Nova"
@@ -14,15 +17,18 @@
 namespace nova {
 
 /*
- * Android API 30 compatibility:
+ * Android API 30 compatibility.
  *
- * __android_log_is_loggable() was introduced in API 30.
- * Nova targets API 26, so we must not call it.
+ * Do NOT use __android_log_is_loggable().
+ * Nova targets Android API 26.
  */
 inline bool is_loggable(int prio) {
     return prio >= LOG_MIN_LEVEL;
 }
 
+/*
+ * Android formatted logging.
+ */
 inline void log_print(
         int prio,
         const char* tag,
@@ -37,46 +43,47 @@ inline void log_print(
     va_start(args, format);
 
     __android_log_vprint(
-        prio,
-        tag ? tag : LOG_TAG,
-        format ? format : "",
-        args
-    );
+            prio,
+            tag ? tag : LOG_TAG,
+            format ? format : "",
+            args);
 
     va_end(args);
 }
 
 /*
- * llama.cpp Android logging callback.
+ * llama.cpp -> Android log callback.
  *
- * llama.cpp sends its log priority and formatted message here.
+ * IMPORTANT:
+ * This uses llama_log_level, because llama_log_set()
+ * expects a llama_log_callback.
  */
 inline void aichat_android_log_callback(
-        enum ggml_log_level level,
-        const char* format,
-        va_list args,
+        enum llama_log_level level,
+        const char* text,
         void* /* user_data */) {
 
     int android_priority = ANDROID_LOG_INFO;
 
     switch (level) {
-        case GGML_LOG_LEVEL_ERROR:
-            android_priority = ANDROID_LOG_ERROR;
-            break;
 
-        case GGML_LOG_LEVEL_WARN:
-            android_priority = ANDROID_LOG_WARN;
-            break;
-
-        case GGML_LOG_LEVEL_INFO:
-            android_priority = ANDROID_LOG_INFO;
-            break;
-
-        case GGML_LOG_LEVEL_DEBUG:
+        case LLAMA_LOG_LEVEL_DEBUG:
             android_priority = ANDROID_LOG_DEBUG;
             break;
 
-        case GGML_LOG_LEVEL_CONT:
+        case LLAMA_LOG_LEVEL_INFO:
+            android_priority = ANDROID_LOG_INFO;
+            break;
+
+        case LLAMA_LOG_LEVEL_WARN:
+            android_priority = ANDROID_LOG_WARN;
+            break;
+
+        case LLAMA_LOG_LEVEL_ERROR:
+            android_priority = ANDROID_LOG_ERROR;
+            break;
+
+        case LLAMA_LOG_LEVEL_CONT:
             android_priority = ANDROID_LOG_INFO;
             break;
 
@@ -89,34 +96,40 @@ inline void aichat_android_log_callback(
         return;
     }
 
-    __android_log_vprint(
-        android_priority,
-        LOG_TAG,
-        format ? format : "",
-        args
-    );
+    __android_log_write(
+            android_priority,
+            LOG_TAG,
+            text ? text : "");
 }
 
 } // namespace nova
 
 
 /*
- * llama.cpp logging macros.
- *
- * ai_chat.cpp uses LOGv/LOGd/LOGi/LOGw/LOGe.
+ * llama.cpp logging macros used by ai_chat.cpp.
  */
 
+#ifndef LOGv
 #define LOGv(...) \
     nova::log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
+#endif
 
+#ifndef LOGd
 #define LOGd(...) \
     nova::log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#endif
 
+#ifndef LOGi
 #define LOGi(...) \
     nova::log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#endif
 
+#ifndef LOGw
 #define LOGw(...) \
     nova::log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
+#endif
 
+#ifndef LOGe
 #define LOGe(...) \
     nova::log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#endif
