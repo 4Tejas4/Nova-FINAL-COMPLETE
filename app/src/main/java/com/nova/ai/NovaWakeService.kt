@@ -673,11 +673,3 @@ class NovaWakeService : Service(), TextToSpeech.OnInitListener {
     override fun onBind(intent: Intent?): IBinder? = null
 
 }
- onInit(status: Int) {
-        ttsReady = status == TextToSpeech.SUCCESS
-        if (ttsReady) tts?.language = Locale("en", "IN")
-    }
-
-    override fun onBind(intent: Intent?): IBinder? = null
-
-}
