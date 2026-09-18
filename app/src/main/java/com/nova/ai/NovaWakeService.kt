@@ -75,7 +75,13 @@ class NovaWakeService : Service(), TextToSpeech.OnInitListener {
 
     override fun onCreate() {
         super.onCreate()
-        NovaSystemIntegration.initialize(this)
+        try {
+            NovaSystemIntegration.initialize(this)
+        } catch (t: Throwable) {
+            // Startup must never crash the service: this only primes optional
+            // caches (capabilities, events, task recovery).
+            Log.e(TAG, "System integration initialization failed", t)
+        }
         conversationManager = ConversationManager(this)
         val confirmationFilter = IntentFilter().apply {
             addAction(ConfirmationActivity.ACTION_YES)
