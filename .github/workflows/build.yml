@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+      - arena/01a0b327-nova-final-complete
+      - '**'
 
 jobs:
   build:
@@ -37,7 +39,7 @@ jobs:
             "platforms;android-36" \
             "build-tools;36.0.0" \
             "ndk;27.0.12077973" \
-            "cmake;3.22.1"
+            "cmake;3.31.6"
 
       - name: Verify Android SDK
         run: |
@@ -51,8 +53,8 @@ jobs:
 
           echo ""
           echo "CMake:"
-          test -f "$ANDROID_SDK_ROOT/cmake/3.22.1/bin/cmake"
-          "$ANDROID_SDK_ROOT/cmake/3.22.1/bin/cmake" --version
+          test -f "$ANDROID_SDK_ROOT/cmake/3.31.6/bin/cmake"
+          "$ANDROID_SDK_ROOT/cmake/3.31.6/bin/cmake" --version
 
           echo ""
           echo "Clang:"
@@ -63,7 +65,7 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> "$GITHUB_ENV"
 
-          echo "$ANDROID_SDK_ROOT/cmake/3.22.1/bin" >> "$GITHUB_PATH"
+          echo "$ANDROID_SDK_ROOT/cmake/3.31.6/bin" >> "$GITHUB_PATH"
           echo "$ANDROID_SDK_ROOT/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_PATH"
 
       - name: Make Gradle executable
