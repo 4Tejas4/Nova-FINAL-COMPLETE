@@ -50,6 +50,7 @@ class NovaWakeService : Service(), TextToSpeech.OnInitListener {
     private var tts: TextToSpeech? = null
     private var ttsReady = false
     private var stopping = false
+    private var fgStartFailed = false
     private var commandListening = false
     private var verificationListening = false
     private var loadingWakeEngine = false
@@ -132,6 +133,12 @@ class NovaWakeService : Service(), TextToSpeech.OnInitListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (fgStartFailed) {
+            // Foreground promotion failed during onCreate; do not start anything
+            // on a service that is shutting down.
+            stopSelf()
+            return START_NOT_STICKY
+        }
         when (intent?.action) {
             ACTION_STOP -> {
                 stopping = true
