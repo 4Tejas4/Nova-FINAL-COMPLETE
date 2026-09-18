@@ -11,8 +11,8 @@ android {
         applicationId = "com.nova.ai"
         minSdk = 26
         targetSdk = 36
-        versionCode = 100
-        versionName = "100.0-local-final"
+        versionCode = 101
+        versionName = "100.1-nova-tune"
     }
 
     buildTypes {

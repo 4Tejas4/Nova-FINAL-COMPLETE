@@ -532,7 +532,10 @@ class NovaWakeService : Service(), TextToSpeech.OnInitListener {
         return normalized == "yes" || normalized == "yes please" || normalized == "confirm" || normalized == "confirmed" || normalized == "do it"
     }
 
-    private fun containsCancel(text: String): Boolean = text.lowercase(Locale.ROOT).contains("cancel") || text.lowercase(Locale.ROOT).contains("never mind")
+    private fun containsCancel(text: String): Boolean {
+        val normalized = text.lowercase(Locale.ROOT).replace(Regex("[^a-z ]"), " ").replace(Regex("\\s+"), " ").trim()
+        return Regex("\\b(cancel|never mind|no|nope|nah|naah|don t|do not|stop|not now)\\b").containsMatchIn(normalized)
+    }
 
     private fun speak(text: String) {
         runOnMainThread {

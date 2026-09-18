@@ -10,6 +10,11 @@ import java.net.URL
 object LocalModelManager {
     const val MODEL_NAME = "qwen2.5-0.5b-instruct-q4_k_m.gguf"
     const val MODEL_URL = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf?download=true"
+    /** Primary + mirror sources; tried in order on each retry. */
+    private val MODEL_URLS = listOf(
+        "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf?download=true",
+        "https://hf-mirror.com/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+    )
 
     fun modelDir(context: Context): File = File(context.getExternalFilesDir("models") ?: context.filesDir, "nova_models").apply { mkdirs() }
     fun modelFile(context: Context): File = File(modelDir(context), MODEL_NAME)
@@ -38,7 +43,8 @@ object LocalModelManager {
         val target = modelFile(context)
         if (isInstalled(context)) { progress(100); return }
         val tmp = File(target.parentFile, target.name + ".part")
-        val c = (URL(MODEL_URL).openConnection() as HttpURLConnection).apply {
+        val url = MODEL_URLS[(attempt - 1) % MODEL_URLS.size]
+                val c = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 20_000; readTimeout = 60_000; requestMethod = "GET"
             setRequestProperty("User-Agent", "Nova/100")
         }
