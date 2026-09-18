@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <cstdio>
 
+#include "ggml.h"
 #include "llama.h"
 
 #ifndef LOG_TAG
@@ -67,23 +68,23 @@ inline void aichat_android_log_callback(
 
     switch (level) {
 
-        case LLAMA_LOG_LEVEL_DEBUG:
+        case GGML_LOG_LEVEL_DEBUG:
             android_priority = ANDROID_LOG_DEBUG;
             break;
 
-        case LLAMA_LOG_LEVEL_INFO:
+        case GGML_LOG_LEVEL_INFO:
             android_priority = ANDROID_LOG_INFO;
             break;
 
-        case LLAMA_LOG_LEVEL_WARN:
+        case GGML_LOG_LEVEL_WARN:
             android_priority = ANDROID_LOG_WARN;
             break;
 
-        case LLAMA_LOG_LEVEL_ERROR:
+        case GGML_LOG_LEVEL_ERROR:
             android_priority = ANDROID_LOG_ERROR;
             break;
 
-        case LLAMA_LOG_LEVEL_CONT:
+        case GGML_LOG_LEVEL_CONT:
             android_priority = ANDROID_LOG_INFO;
             break;
 
