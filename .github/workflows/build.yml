@@ -8,6 +8,9 @@ on:
       - arena/01a0b327-nova-final-complete
       - '**'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Nova
@@ -69,24 +72,19 @@ jobs:
           echo "$ANDROID_SDK_ROOT/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_PATH"
 
       - name: Make Gradle executable
-        run: |
-          chmod +x ./gradlew
+        run: chmod +x ./gradlew
 
       - name: Check Gradle
-        run: |
-          ./gradlew --version
-
-      - name: Show Gradle projects
-        run: |
-          ./gradlew projects --no-daemon
+        run: ./gradlew --version
 
       - name: Build Nova Debug APK
+        shell: bash
         run: |
+          set -o pipefail
           ./gradlew assembleDebug \
             --no-daemon \
             --stacktrace \
-            --info \
-            -Pandroid.native.buildOutput=verbose
+            -Pandroid.native.buildOutput=verbose 2>&1 | tee build-log.txt
 
       - name: Find APK
         if: success()
@@ -97,6 +95,32 @@ jobs:
             -path "*/build/outputs/apk/debug/*.apk" \
             -print
 
+      - name: Publish outputs into branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          mkdir -p ci-artifacts
+          if [ -f build-log.txt ]; then
+            # keep the log bounded: the interesting stuff (errors) is at the end
+            tail -c 900000 build-log.txt > ci-artifacts/build-log.txt
+          fi
+
+          APK=$(find . -type f -path "*/build/outputs/apk/debug/*.apk" | head -1 || true)
+          if [ -n "$APK" ]; then
+            cp "$APK" ci-artifacts/Nova-debug.apk
+            ls -la ci-artifacts/
+          fi
+
+          git add ci-artifacts
+          if git diff --cached --quiet; then
+            echo "Nothing new to commit"
+          else
+            git commit -m "CI artifacts for run $GITHUB_RUN_ID [skip ci]"
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi
+
       - name: Upload Nova APK
         if: success()
         uses: actions/upload-artifact@v6
@@ -105,14 +129,3 @@ jobs:
           path: |
             **/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-
-      - name: Upload build reports
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: Nova-build-reports
-          path: |
-            **/build/reports/**
-            **/build/outputs/logs/**
-            **/llama-android/.cxx/**
-          if-no-files-found: ignore
