@@ -43,19 +43,53 @@ object LocalModelManager {
         val target = modelFile(context)
         if (isInstalled(context)) { progress(100); return }
         val tmp = File(target.parentFile, target.name + ".part")
-        val url = MODEL_URLS[(attempt - 1) % MODEL_URLS.size]
+        var lastProgress = -1
+        var attempt = 0
+        while (true) {
+            attempt++
+            try {
+                // Alternate between the primary and mirror sources on retries.
+                val url = MODEL_URLS[(attempt - 1) % MODEL_URLS.size]
+                val start2 = if (tmp.exists()) tmp.length() else 0L
                 val c = (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 20_000; readTimeout = 60_000; requestMethod = "GET"
-            setRequestProperty("User-Agent", "Nova/100")
+                    connectTimeout = 20_000; readTimeout = 120_000; requestMethod = "GET"
+                    instanceFollowRedirects = true
+                    setRequestProperty("User-Agent", "Nova/100")
+                    if (start2 > 0L) setRequestProperty("Range", "bytes=$start2-")
+                }
+                c.connect()
+                val code = c.responseCode
+                if (code !in 200..299) { c.disconnect(); error("Model download failed: HTTP $code") }
+                val resumed = code == 206 && start2 > 0L
+                val total = if (resumed) start2 + c.contentLengthLong else c.contentLengthLong
+                java.io.FileOutputStream(tmp, resumed).use { output ->
+                    c.inputStream.buffered().use { input ->
+                        val buffer = ByteArray(256 * 1024)
+                        var done = if (resumed) start2 else 0L
+                        while (true) {
+                            val n = input.read(buffer); if (n < 0) break
+                            output.write(buffer, 0, n); done += n
+                            if (total > 0) {
+                                val pct = (done * 100 / total).toInt()
+                                if (pct != lastProgress) { progress(pct); lastProgress = pct }
+                            }
+                        }
+                        output.fd.sync()
+                    }
+                }
+                c.disconnect()
+                require(hasValidMagic(tmp)) { "Downloaded file is not a valid GGUF model" }
+                if (total > 0) require(tmp.length() >= total) { "Download incomplete (${tmp.length()}/${total} bytes)" }
+                if (!tmp.renameTo(target)) { tmp.delete(); error("Could not finalize downloaded model") }
+                progress(100)
+                return
+            } catch (t: Throwable) {
+                if (attempt >= 4) {
+                    tmp.delete()
+                    throw RuntimeException("Model download failed: ${t.message ?: t.javaClass.simpleName}", t)
+                }
+                try { Thread.sleep(1_500L * attempt) } catch (_: InterruptedException) {}
+            }
         }
-        c.connect()
-        if (c.responseCode !in 200..299) error("Model download failed: HTTP ${c.responseCode}")
-        val total = c.contentLengthLong
-        c.inputStream.buffered().use { input -> tmp.outputStream().buffered().use { output ->
-            val buffer = ByteArray(128 * 1024); var done = 0L
-            while (true) { val n = input.read(buffer); if (n < 0) break; output.write(buffer, 0, n); done += n; if (total > 0) progress((done * 100 / total).toInt()) }
-        }}
-        c.disconnect()
-        if (!tmp.renameTo(target)) error("Could not finalize downloaded model")
     }
 }
