@@ -28,7 +28,7 @@ object AIClient {
         Thread { try { val prompt = "USER COMMAND:\n$currentText\n\nRECENT CONVERSATION:\n${conversationHistory.takeLast(12).joinToString("\n") { "${it["role"]}: ${it["content"]}" }}"; val d=parseDecision(LocalAIEngine.complete(AppContext.get(),prompt,500)); main.post{callback.onSuccess(d)} } catch(e:Exception){main.post{callback.onError(e.message ?: "Local AI error")}} }.start()
     }
 
-    fun routeAgentRequest(provider:String, apiKey:String, conversationHistory:List<Map<String,String>>, task:String, screenSnapshot:String, previousResult:String="", actionHistory:List<String> = emptyList(), taskState:String="", contextValues:Map<String,String> = emptyMap(), memoryHints:String="", endpoint:String="", modelName:String="", callback:RouteCallback) {
+    fun routeAgentRequest(provider:String="", apiKey:String="", conversationHistory:List<Map<String,String>>, task:String, screenSnapshot:String, previousResult:String="", actionHistory:List<String> = emptyList(), taskState:String="", contextValues:Map<String,String> = emptyMap(), memoryHints:String="", endpoint:String="", modelName:String="", callback:RouteCallback) {
         Thread { try {
             val prompt="""USER TASK:\n$task\n\nCURRENT UI:\n$screenSnapshot\n\nTASK STATE:\n$taskState\n\nCONTEXT:\n${contextValues.entries.joinToString("\n") { "${it.key}=${it.value}" }}\n\nPREVIOUS RESULT:\n$previousResult\n\nACTION HISTORY:\n${actionHistory.takeLast(12).joinToString("\n")}\n\nWORKFLOW HINTS:\n$memoryHints\n\nChoose exactly ONE next action. Use FINISH only when the task is verified complete."""
             val d=parseDecision(LocalAIEngine.complete(AppContext.get(),prompt,700)); main.post{callback.onSuccess(d)}
