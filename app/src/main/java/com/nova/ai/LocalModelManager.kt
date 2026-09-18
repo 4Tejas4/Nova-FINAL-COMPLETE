@@ -13,7 +13,17 @@ object LocalModelManager {
 
     fun modelDir(context: Context): File = File(context.getExternalFilesDir("models") ?: context.filesDir, "nova_models").apply { mkdirs() }
     fun modelFile(context: Context): File = File(modelDir(context), MODEL_NAME)
-    fun isInstalled(context: Context): Boolean = modelFile(context).let { it.exists() && it.length() > 10_000_000L }
+    fun isInstalled(context: Context): Boolean = modelFile(context).let { it.exists() && it.length() > 10_000_000L && hasValidMagic(it) }
+
+    /** GGUF files start with the ASCII magic "GGUF". */
+    fun hasValidMagic(file: File): Boolean = try {
+        file.inputStream().use { input ->
+            val magic = ByteArray(4)
+            val n = input.read(magic)
+            n == 4 && magic[0] == 'G'.code.toByte() && magic[1] == 'G'.code.toByte() &&
+                magic[2] == 'U'.code.toByte() && magic[3] == 'F'.code.toByte()
+        }
+    } catch (_: Exception) { false }
 
     fun copyFromUri(context: Context, uri: Uri) {
         val target = modelFile(context)

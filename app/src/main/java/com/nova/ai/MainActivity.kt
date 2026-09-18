@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateState(){if(LocalModelManager.isInstalled(this)){status.text="Local AI • model ready"}else{status.text="Local AI • model not loaded"}}
     private fun startPulse(){pulse?.cancel();pulse=ObjectAnimator.ofFloat(startButton,"alpha",1f,.55f,1f).apply{duration=1200;repeatCount=ObjectAnimator.INFINITE;interpolator=LinearInterpolator();start()}}
     private fun stopPulse(){pulse?.cancel();startButton.alpha=1f}
+    override fun onRequestPermissionsResult(requestCode:Int,permissions:Array<out String>,grantResults:IntArray){super.onRequestPermissionsResult(requestCode,permissions,grantResults);if(requestCode==micPermissionCode&&grantResults.firstOrNull()==PackageManager.PERMISSION_GRANTED){toggleNova()}else if(requestCode==micPermissionCode){addBubble("Microphone permission is required for Nova to listen. Please allow it in Settings → Apps → Nova → Permissions.",false)}}
     private fun addBubble(text:String,isUser:Boolean){val tv=TextView(this);tv.text=text;tv.textSize=16f;tv.setTextColor(getColor(if(isUser)R.color.nova_user_text else R.color.nova_text));tv.setPadding(18,14,18,14);tv.background=getDrawable(if(isUser)R.drawable.bg_user_bubble else R.drawable.bg_ai_bubble);val lp=LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,8,0,8);tv.layoutParams=lp;chat.addView(tv);scroll.post{scroll.fullScroll(ScrollView.FOCUS_DOWN)}}
     override fun onResume(){super.onResume();updateState()}
     override fun onDestroy(){stopPulse();super.onDestroy()}

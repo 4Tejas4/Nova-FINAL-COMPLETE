@@ -20,7 +20,11 @@ if(DEFINED ANDROID_ABI)
     if(ANDROID_ABI STREQUAL "arm64-v8a")
         set(GGML_SYSTEM_ARCH "ARM")
         set(GGML_CPU_KLEIDIAI ON)
-        set(GGML_OPENMP ON)
+        # GGML_OPENMP must be OFF on Android: the NDK libomp.so is not packaged
+        # into the APK, and a missing libomp makes libai-chat.so fail to load
+        # (UnsatisfiedLinkError) at runtime. This matches llama.cpp's
+        # recommended Android arm64 build flags.
+        set(GGML_OPENMP OFF)
     elseif(ANDROID_ABI STREQUAL "x86_64")
         set(GGML_SYSTEM_ARCH "x86")
         set(GGML_CPU_KLEIDIAI OFF)

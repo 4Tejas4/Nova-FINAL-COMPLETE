@@ -137,9 +137,15 @@ internal class InferenceEngineImpl private constructor(
                 _state.value = InferenceEngine.State.Initialized
                 Log.i(TAG, "Native library loaded! System info: \n${systemInfo()}")
 
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to load native library", e)
-                throw e
+            } catch (t: Throwable) {
+                // Catch Throwable (not just Exception): System.loadLibrary can
+                // throw UnsatisfiedLinkError, which previously killed this
+                // coroutine (and the process) and left the state stuck on
+                // Initializing forever.
+                Log.e(TAG, "Failed to load native library", t)
+                _state.value = InferenceEngine.State.Error(
+                    t as? Exception ?: RuntimeException(t.message ?: t.javaClass.simpleName, t)
+                )
             }
         }
     }

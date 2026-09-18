@@ -114,6 +114,10 @@ jobs:
           fi
 
           git add ci-artifacts
+          # *.apk is gitignored in this repo; force-add the deliverable
+          if [ -f ci-artifacts/Nova-debug.apk ]; then
+            git add -f ci-artifacts/Nova-debug.apk
+          fi
           if git diff --cached --quiet; then
             echo "Nothing new to commit"
           else

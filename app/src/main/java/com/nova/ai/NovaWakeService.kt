@@ -85,8 +85,18 @@ class NovaWakeService : Service(), TextToSpeech.OnInitListener {
         createNotificationChannel()
         try {
             startForeground(NOTIFICATION_ID, buildNotification("Starting Nova wake-word engine…"))
-        } catch (e: Exception) {
-            Log.e(TAG, "Unable to start foreground service", e)
+        } catch (t: Throwable) {
+            Log.e(TAG, "Unable to start foreground service", t)
+            // If we cannot promote to foreground (e.g. MIUI/Android 14 FGS
+            // restrictions), stop now: a started service that never calls
+            // startForeground is killed by the system with a crash a few
+            // seconds later.
+            val reason = t.message ?: "foreground service blocked"
+            try { updateNotification("Nova could not start: $reason") } catch (_: Throwable) {}
+            stopping = true
+            fgStartFailed = true
+            stopSelf()
+            return
         }
 
         tts = TextToSpeech(this, this)
@@ -656,6 +666,14 @@ class NovaWakeService : Service(), TextToSpeech.OnInitListener {
     }
 
     override fun onInit(status: Int) {
+        ttsReady = status == TextToSpeech.SUCCESS
+        if (ttsReady) tts?.language = Locale("en", "IN")
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+}
+ onInit(status: Int) {
         ttsReady = status == TextToSpeech.SUCCESS
         if (ttsReady) tts?.language = Locale("en", "IN")
     }

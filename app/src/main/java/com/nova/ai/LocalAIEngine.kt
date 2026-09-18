@@ -38,17 +38,28 @@ Never request passwords, OTPs, banking/UPI/payment authorization, security bypas
         withContext(Dispatchers.IO) {
             val file = LocalModelManager.modelFile(context)
             require(file.exists()) { "Local AI model is not installed. Download or load a GGUF model in Nova Settings." }
+            require(LocalModelManager.hasValidMagic(file)) {
+                "The model file is damaged or incomplete. Open Nova Settings and download the model again."
+            }
             val e = getEngine(context)
             var waited = 0
             while (e.state.value is InferenceEngine.State.Uninitialized || e.state.value is InferenceEngine.State.Initializing) {
-                if (waited++ > 300) error("Local llama.cpp engine initialization timed out")
+                if (waited++ > 600) error("Local llama.cpp engine initialization timed out")
                 delay(100)
             }
-            if (e.state.value is InferenceEngine.State.Error) error("Local llama.cpp engine failed to initialize")
+            if (e.state.value is InferenceEngine.State.Error) {
+                // Recover from a previous failed attempt instead of failing forever.
+                try { e.cleanUp() } catch (_: Throwable) {}
+            }
             if (loadedPath != file.absolutePath || e.state.value !is InferenceEngine.State.ModelReady) {
-                e.loadModel(file.absolutePath)
-                e.setSystemPrompt(SYSTEM)
-                loadedPath = file.absolutePath
+                try {
+                    e.loadModel(file.absolutePath)
+                    e.setSystemPrompt(SYSTEM)
+                    loadedPath = file.absolutePath
+                } catch (t: Throwable) {
+                    throw RuntimeException(
+                        "Nova could not initialise the local model: ${t.message ?: t.javaClass.simpleName}", t)
+                }
             }
         }
     }
