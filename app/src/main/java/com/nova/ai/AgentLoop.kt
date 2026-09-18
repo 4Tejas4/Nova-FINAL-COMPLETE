@@ -118,8 +118,6 @@ class AgentLoop(private val context: Context) {
         }
 
         AIClient.routeAgentRequest(
-            provider = provider,
-            apiKey = apiKey,
             conversationHistory = ConversationManager(context).getConversationHistory(),
             task = task,
             screenSnapshot = snapshot,
@@ -128,7 +126,6 @@ class AgentLoop(private val context: Context) {
             taskState = taskState,
             contextValues = taskContext.all(),
             memoryHints = memoryHints,
-            endpoint = endpoint,
             modelName = SettingsActivity.getModelName(context),
             callback = object : AIClient.RouteCallback {
                 override fun onSuccess(decision: AIClient.RouteDecision) {

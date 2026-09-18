@@ -7,7 +7,7 @@ object NovaGoalDecomposer {
 
     fun decompose(request: String): GoalPlan {
         val text = request.trim().replace(Regex("\\s+"), " ")
-        val parts = text.split(Regex("\\s+(?:then|and then|after that|next)\\s+|\\s*[;]\\s*|\\s*,\\s*and\\s+"), ignoreCase = true).map { it.trim() }.filter { it.isNotBlank() }.take(8)
+        val parts = text.split(Regex("\\s+(?:then|and then|after that|next)\\s+|\\s*[;]\\s*|\\s*,\\s*and\\s+", RegexOption.IGNORE_CASE)).map { it.trim() }.filter { it.isNotBlank() }.take(8)
         val chunks = if (parts.size > 1) parts else listOf(text)
         val goals = chunks.mapIndexed { i, p ->
             val id = "g${i + 1}"

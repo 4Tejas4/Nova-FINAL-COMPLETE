@@ -11,7 +11,7 @@ import kotlinx.coroutines.delay
 
 /** Real on-device llama.cpp inference bridge. No cloud provider is used here. */
 object LocalAIEngine {
-    private const val SYSTEM = """
+    private val SYSTEM = """
 You are Nova, a local Android assistant. You run entirely on the user's phone. Never claim an action happened unless the executor reports success.
 For ordinary questions return concise natural language.
 For a phone task return ONLY JSON, no markdown:
