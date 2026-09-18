@@ -56,11 +56,11 @@ inline void log_print(
  * llama.cpp -> Android log callback.
  *
  * IMPORTANT:
- * This uses llama_log_level, because llama_log_set()
- * expects a llama_log_callback.
+ * This uses ggml_log_level, because llama_log_set()
+ * expects a ggml_log_callback.
  */
 inline void aichat_android_log_callback(
-        enum llama_log_level level,
+        enum ggml_log_level level,
         const char* text,
         void* /* user_data */) {
 
