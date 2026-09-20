@@ -1,26 +1,314 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/bg">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="NOVA" android:textColor="@color/text_primary" android:textSize="28sp" android:textStyle="bold" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Local assistant settings" android:textColor="@color/text_secondary" android:textSize="14sp" />
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="18dp" android:padding="16dp" android:background="@drawable/bg_card">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="LOCAL AI BRAIN" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="15sp" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Nova uses llama.cpp + a GGUF model directly on this phone. No OpenAI, Gemini, Claude, OpenRouter or API key is used for reasoning." android:textColor="@color/text_secondary" android:textSize="13sp" />
-            <Spinner android:id="@+id/providerSpinner" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" />
-            <EditText android:id="@+id/apiKeyInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="No API key required" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" />
-            <EditText android:id="@+id/modelInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="GGUF model" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" />
-            <EditText android:id="@+id/endpointInput" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="No cloud endpoint" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" />
-            <TextView android:id="@+id/modelStatusText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/text_secondary" android:textSize="13sp" />
-            <Button android:id="@+id/testButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="8dp" android:text="DOWNLOAD / LOAD LOCAL AI MODEL" />
-            <Button android:id="@+id/loadModelButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="6dp" android:text="LOAD GGUF FILE FROM PHONE" />
-            <Button android:id="@+id/saveButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="6dp" android:text="DONE" />
-            <Button android:id="@+id/clearConversationButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="6dp" android:text="CLEAR CHAT HISTORY" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="12dp" android:padding="16dp" android:background="@drawable/bg_card">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="MUSIC CONTROL" android:textColor="@color/text_primary" android:textStyle="bold" android:textSize="15sp" />
-            <Spinner android:id="@+id/musicAppSpinner" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" />
-            <Button android:id="@+id/musicAccessButton" android:layout_width="match_parent" android:layout_height="50dp" android:layout_marginTop="8dp" android:text="ENABLE MUSIC CONTROL ACCESS" />
-        </LinearLayout>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:padding="8dp" android:text="Some Android operations remain protected by the OS. Nova cannot bypass permissions or silently perform restricted actions." android:textColor="@color/text_secondary" android:textSize="12sp" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/nova_bg">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back"
+            android:tint="@color/nova_text" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:text="Settings"
+            android:textColor="@color/nova_text"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/searchButton"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_search"
+            android:contentDescription="Search" />
     </LinearLayout>
-</ScrollView>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="24dp">
+
+            <!-- Profile card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp"
+                android:background="@drawable/bg_card">
+
+                <com.nova.ai.NovaOrbView
+                    android:id="@+id/settingsOrb"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Nova"
+                        android:textColor="@color/nova_text"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/versionText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="v1.0 · local-offline"
+                        android:textColor="@color/nova_text_dim"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Your offline AI assistant"
+                        android:textColor="@color/nova_text_faint"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- AI & Model -->
+            <LinearLayout
+                android:id="@+id/rowAi"
+                style="@style/SettingsRow">
+                <ImageView style="@style/SettingsRowIcon" android:src="@drawable/ic_gear" />
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/SettingsRowTitle" android:text="AI &amp; Model" />
+                    <TextView style="@style/SettingsRowSubtitle" android:text="Local GGUF model · llama.cpp" />
+                </LinearLayout>
+                <ImageView style="@style/SettingsRowChevron" android:src="@drawable/ic_chevron" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/panelAi"
+                style="@style/SettingsPanel">
+                <TextView
+                    android:id="@+id/modelStatusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/nova_text_dim"
+                    android:textSize="13sp" />
+                <Button
+                    android:id="@+id/btnDownloadModel"
+                    style="@style/NovaPanelButton"
+                    android:text="Download model (Qwen 0.5B · ~400 MB)" />
+                <Button
+                    android:id="@+id/btnLoadGguf"
+                    style="@style/NovaPanelButton"
+                    android:text="Load GGUF file from phone" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Nova reasons with llama.cpp + a GGUF model entirely on this phone. No cloud AI, no API keys."
+                    android:textColor="@color/nova_text_faint"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Speech & Verification -->
+            <LinearLayout
+                android:id="@+id/rowSpeech"
+                style="@style/SettingsRow">
+                <ImageView style="@style/SettingsRowIcon" android:src="@drawable/ic_mic" />
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/SettingsRowTitle" android:text="Speech &amp; Verification" />
+                    <TextView style="@style/SettingsRowSubtitle" android:text="Offline recognition" />
+                </LinearLayout>
+                <ImageView style="@style/SettingsRowChevron" android:src="@drawable/ic_chevron" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/panelSpeech"
+                style="@style/SettingsPanel">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Wake word and speech recognition run fully offline with Vosk (Indian English). Commands are verified after execution: Android's own result plus a screen check when Accessibility is enabled. Calls and Stop Nova always ask for spoken confirmation."
+                    android:textColor="@color/nova_text_dim"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Voice & Language -->
+            <LinearLayout
+                android:id="@+id/rowVoice"
+                style="@style/SettingsRow">
+                <ImageView style="@style/SettingsRowIcon" android:src="@drawable/ic_globe" />
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/SettingsRowTitle" android:text="Voice &amp; Language" />
+                    <TextView style="@style/SettingsRowSubtitle" android:text="Voice, language, wake word" />
+                </LinearLayout>
+                <ImageView style="@style/SettingsRowChevron" android:src="@drawable/ic_chevron" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/panelVoice"
+                style="@style/SettingsPanel">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Wake word: “Hey Nova” (or just “Nova”).\nSpeech: English (India).\nNova replies with the phone's text-to-speech voice."
+                    android:textColor="@color/nova_text_dim"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Appearance -->
+            <LinearLayout
+                android:id="@+id/rowAppearance"
+                style="@style/SettingsRow">
+                <ImageView style="@style/SettingsRowIcon" android:src="@drawable/ic_palette" />
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/SettingsRowTitle" android:text="Appearance" />
+                    <TextView style="@style/SettingsRowSubtitle" android:text="Theme, UI, animations" />
+                </LinearLayout>
+                <ImageView style="@style/SettingsRowChevron" android:src="@drawable/ic_chevron" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/panelAppearance"
+                style="@style/SettingsPanel">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Dark theme is always on. The home orb animation speeds up while Nova listens or speaks."
+                    android:textColor="@color/nova_text_dim"
+                    android:textSize="13sp" />
+                <CheckBox
+                    android:id="@+id/reduceFx"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Reduce orb effects (saves battery)"
+                    android:textColor="@color/nova_text"
+                    android:textSize="13sp"
+                    android:buttonTint="@color/nova_accent" />
+            </LinearLayout>
+
+            <!-- Quick Tasks -->
+            <LinearLayout
+                android:id="@+id/rowQuick"
+                style="@style/SettingsRow">
+                <ImageView style="@style/SettingsRowIcon" android:src="@drawable/ic_bolt" />
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/SettingsRowTitle" android:text="Quick Tasks" />
+                    <TextView style="@style/SettingsRowSubtitle" android:text="Manage your favorite actions" />
+                </LinearLayout>
+                <ImageView style="@style/SettingsRowChevron" android:src="@drawable/ic_chevron" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/panelQuick"
+                style="@style/SettingsPanel">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Music app used by “play” and “pause”:"
+                    android:textColor="@color/nova_text_dim"
+                    android:textSize="13sp" />
+                <Spinner
+                    android:id="@+id/musicAppSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="4dp" />
+                <Button
+                    android:id="@+id/musicAccessButton"
+                    style="@style/NovaPanelButton"
+                    android:text="Enable music control access" />
+            </LinearLayout>
+
+            <!-- Privacy & Security -->
+            <LinearLayout
+                android:id="@+id/rowPrivacy"
+                style="@style/SettingsRow">
+                <ImageView style="@style/SettingsRowIcon" android:src="@drawable/ic_shield" />
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/SettingsRowTitle" android:text="Privacy &amp; Security" />
+                    <TextView style="@style/SettingsRowSubtitle" android:text="Permissions, data, safety" />
+                </LinearLayout>
+                <ImageView style="@style/SettingsRowChevron" android:src="@drawable/ic_chevron" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/panelPrivacy"
+                style="@style/SettingsPanel">
+                <Button
+                    android:id="@+id/btnSecurityReport"
+                    style="@style/NovaPanelButton"
+                    android:text="View security report" />
+                <Button
+                    android:id="@+id/btnClearChat"
+                    style="@style/NovaPanelButton"
+                    android:text="Clear chat history" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Nova never asks for passwords, OTPs or banking approvals. SMS is only pre-filled, never sent silently. Everything stays on this phone."
+                    android:textColor="@color/nova_text_faint"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- About -->
+            <LinearLayout
+                android:id="@+id/rowAbout"
+                style="@style/SettingsRow">
+                <ImageView style="@style/SettingsRowIcon" android:src="@drawable/ic_info" />
+                <LinearLayout style="@style/SettingsRowText">
+                    <TextView style="@style/SettingsRowTitle" android:text="About" />
+                    <TextView style="@style/SettingsRowSubtitle" android:text="App info, licenses, version" />
+                </LinearLayout>
+                <ImageView style="@style/SettingsRowChevron" android:src="@drawable/ic_chevron" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/panelAbout"
+                style="@style/SettingsPanel">
+                <TextView
+                    android:id="@+id/aboutText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/nova_text_dim"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:text="Some Android operations remain protected by the OS. Nova cannot bypass permissions or silently perform restricted actions."
+                android:textColor="@color/nova_text_faint"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

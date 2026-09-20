@@ -1,19 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="nova_bg">#0A0E14</color>
-    <color name="nova_surface">#131A24</color>
-    <color name="nova_accent">#00E5FF</color>
-    <color name="nova_text">#E6F1FF</color>
-    <color name="nova_text_dim">#8AA0B8</color>
+    <!-- Nova dark UI palette (matches the reference design) -->
+    <color name="nova_bg">#05070C</color>
+    <color name="nova_surface">#11151F</color>
+    <color name="nova_surface2">#171D29</color>
+    <color name="nova_accent">#FF9330</color>
+    <color name="nova_accent_bright">#FFB968</color>
+    <color name="nova_accent_deep">#E8641B</color>
+    <color name="nova_text">#F2F5FA</color>
+    <color name="nova_text_dim">#93A1B5</color>
+    <color name="nova_text_faint">#5A6779</color>
     <color name="nova_danger">#FF5252</color>
+    <color name="nova_online">#3DDC84</color>
     <color name="nova_user_text">#FFFFFF</color>
-    <color name="bg">#0A0E14</color>
-    <color name="surface">#131A24</color>
-    <color name="surface2">#1A2230</color>
-    <color name="text_primary">#E6F1FF</color>
-    <color name="text_secondary">#8AA0B8</color>
-    <color name="accent">#00E5FF</color>
-    <color name="chat_text">#E6F1FF</color>
-    <color name="user_bubble">#174B66</color>
-    <color name="ai_bubble">#131A24</color>
+    <color name="nova_stroke">#232B3A</color>
+
+    <!-- legacy aliases (kept for older references) -->
+    <color name="bg">#05070C</color>
+    <color name="surface">#11151F</color>
+    <color name="surface2">#171D29</color>
+    <color name="text_primary">#F2F5FA</color>
+    <color name="text_secondary">#93A1B5</color>
+    <color name="accent">#FF9330</color>
+    <color name="chat_text">#F2F5FA</color>
+    <color name="user_bubble">#22304A</color>
+    <color name="ai_bubble">#141A26</color>
 </resources>

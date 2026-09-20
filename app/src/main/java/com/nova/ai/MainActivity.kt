@@ -2,46 +2,161 @@ package com.nova.ai
 
 import android.Manifest
 import android.animation.ObjectAnimator
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.animation.LinearInterpolator
-import android.widget.*
+import android.widget.ImageButton
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
+/**
+ * Voice-first home screen: animated orb, status line and the mic button.
+ * Typed conversation lives in ChatActivity; settings in SettingsActivity.
+ */
 class MainActivity : AppCompatActivity() {
-    private lateinit var chat: LinearLayout
-    private lateinit var scroll: ScrollView
-    private lateinit var input: EditText
+    private lateinit var orb: NovaOrbView
     private lateinit var status: TextView
-    private lateinit var startButton: TextView
-    private var pulse:ObjectAnimator?=null
-    private val micPermissionCode=101
+    private lateinit var actionText: TextView
+    private lateinit var eq: NovaEqView
+    private lateinit var micButton: ImageButton
+    private lateinit var micGlow: View
+    private var pulse: ObjectAnimator? = null
+    private val micPermissionCode = 101
+    private val handler = Handler(Looper.getMainLooper())
+    private var serviceRunning = false
 
-    override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);AppContext.init(this);setContentView(R.layout.activity_main)
-        chat=findViewById(R.id.chat);scroll=findViewById(R.id.chatScroll);input=findViewById(R.id.messageInput);status=findViewById(R.id.statusText);startButton=findViewById(R.id.startButton)
-        findViewById<ImageButton>(R.id.settingsButton).setOnClickListener{startActivity(Intent(this,SettingsActivity::class.java))}
-        findViewById<ImageButton>(R.id.sendButton).setOnClickListener{sendText()}
-        findViewById<ImageButton>(R.id.micButton).setOnClickListener{toggleNova()}
-        startButton.setOnClickListener{toggleNova()}
-        input.setOnEditorActionListener{_,_,_->sendText();true}
-        addBubble("I’m ready. Load a GGUF model in Settings, then say “Hey Nova” or type a command. Everything in this build is designed to reason locally on the phone.",false)
+    private val chatReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.nova.ai.CHAT_UPDATED") {
+                setStatus("Working on your request…", boost = true)
+                handler.postDelayed({ if (serviceRunning && !isFinishing) setStatus("Listening • say “Hey Nova”", boost = false) }, 2600)
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        AppContext.init(this)
+        setContentView(R.layout.activity_main)
+        orb = findViewById(R.id.orb)
+        status = findViewById(R.id.statusText)
+        actionText = findViewById(R.id.actionText)
+        eq = findViewById(R.id.eq)
+        micButton = findViewById(R.id.micButton)
+        micGlow = findViewById(R.id.micGlow)
+
+        findViewById<View>(R.id.settingsEntry).setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
+        findViewById<View>(R.id.chatButton).setOnClickListener { startActivity(Intent(this, ChatActivity::class.java)) }
+        micButton.setOnClickListener { toggleNova() }
+
+        val reduceFx = getSharedPreferences("NovaPrefs", MODE_PRIVATE).getBoolean("reduce_fx", false)
+        if (reduceFx) orb.setIntensity(0.75f)
         updateState()
     }
-    private fun sendText(){val text=input.text.toString().trim();if(text.isBlank())return;input.setText("");addBubble(text,true);runCommand(text)}
-    private fun runCommand(text:String){if(!LocalModelManager.isInstalled(this)){addBubble("The local AI model is not installed. Open Settings and download/load the GGUF model.",false);return};status.text="Local AI • thinking…";NovaAgentCore(this).submitVoiceOrText(text,object:NovaAgentCore.Callback{override fun onStatus(message:String){runOnUiThread{status.text="Local AI • $message"}};override fun onFinished(success:Boolean,message:String){runOnUiThread{addBubble(message,false);status.text=if(success)"Local AI • ready" else "Local AI • stopped"}}})}
-    private fun toggleNova(){val needNotif=Build.VERSION.SDK_INT>=33&&ContextCompat.checkSelfPermission(this,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED;if(ContextCompat.checkSelfPermission(this,Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED||needNotif){val perms=if(Build.VERSION.SDK_INT>=33)arrayOf(Manifest.permission.RECORD_AUDIO,Manifest.permission.POST_NOTIFICATIONS)else arrayOf(Manifest.permission.RECORD_AUDIO);ActivityCompat.requestPermissions(this,perms,micPermissionCode);return};val running=startButton.text.toString().contains("STOP",true);if(running){stopNova()}else{startNova()}}
-    private fun startNova(){if(!LocalModelManager.isInstalled(this)){addBubble("I need my AI model before I can listen. Opening Settings — tap Download Model (about 400 MB, one time).",false);startActivity(Intent(this,SettingsActivity::class.java));return};try{val i=Intent(this,NovaWakeService::class.java).setAction(NovaWakeService.ACTION_START);if(Build.VERSION.SDK_INT>=26)startForegroundService(i) else startService(i);startButton.text="STOP";status.text="Listening locally • Hey Nova";startPulse()}catch(e:Exception){addBubble("Could not start Nova: ${e.message}",false)}}
-    private fun stopNova(){stopService(Intent(this,NovaWakeService::class.java).setAction(NovaWakeService.ACTION_STOP));startButton.text="START";status.text="Local AI • ready";stopPulse()}
-    private fun updateState(){if(LocalModelManager.isInstalled(this)){status.text="Local AI • model ready"}else{status.text="Local AI • model not loaded"}}
-    private fun startPulse(){pulse?.cancel();pulse=ObjectAnimator.ofFloat(startButton,"alpha",1f,.55f,1f).apply{duration=1200;repeatCount=ObjectAnimator.INFINITE;interpolator=LinearInterpolator();start()}}
-    private fun stopPulse(){pulse?.cancel();startButton.alpha=1f}
-    override fun onRequestPermissionsResult(requestCode:Int,permissions:Array<out String>,grantResults:IntArray){super.onRequestPermissionsResult(requestCode,permissions,grantResults);if(requestCode==micPermissionCode&&grantResults.firstOrNull()==PackageManager.PERMISSION_GRANTED){toggleNova()}else if(requestCode==micPermissionCode){addBubble("Microphone permission is required for Nova to listen. Please allow it in Settings → Apps → Nova → Permissions.",false)}}
-    private fun addBubble(text:String,isUser:Boolean){val tv=TextView(this);tv.text=text;tv.textSize=16f;tv.setTextColor(getColor(if(isUser)R.color.nova_user_text else R.color.nova_text));tv.setPadding(18,14,18,14);tv.background=getDrawable(if(isUser)R.drawable.bg_user_bubble else R.drawable.bg_ai_bubble);val lp=LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,8,0,8);tv.layoutParams=lp;chat.addView(tv);scroll.post{scroll.fullScroll(ScrollView.FOCUS_DOWN)}}
-    override fun onResume(){super.onResume();updateState()}
-    override fun onDestroy(){stopPulse();super.onDestroy()}
+
+    override fun onResume() {
+        super.onResume()
+        val filter = IntentFilter("com.nova.ai.CHAT_UPDATED")
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(chatReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        else registerReceiver(chatReceiver, filter)
+        updateState()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try { unregisterReceiver(chatReceiver) } catch (_: Exception) {}
+    }
+
+    private fun setStatus(text: String, boost: Boolean) {
+        status.text = text
+        eq.setActive(boost)
+        orb.setIntensity(if (boost) 1.9f else if (serviceRunning) 1.25f else 0.95f)
+    }
+
+    private fun toggleNova() {
+        val needNotif = Build.VERSION.SDK_INT >= 33 &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED || needNotif) {
+            val perms = if (Build.VERSION.SDK_INT >= 33) arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS)
+            else arrayOf(Manifest.permission.RECORD_AUDIO)
+            ActivityCompat.requestPermissions(this, perms, micPermissionCode)
+            return
+        }
+        if (serviceRunning) stopNova() else startNova()
+    }
+
+    private fun startNova() {
+        if (!LocalModelManager.isInstalled(this)) {
+            actionText.text = "I need my AI model first — opening Settings…"
+            startActivity(Intent(this, SettingsActivity::class.java))
+            return
+        }
+        try {
+            val i = Intent(this, NovaWakeService::class.java).setAction(NovaWakeService.ACTION_START)
+            if (Build.VERSION.SDK_INT >= 26) startForegroundService(i) else startService(i)
+            serviceRunning = true
+            setStatus("Listening • say “Hey Nova”", boost = true)
+            actionText.text = "Tap the mic to stop Nova"
+            startPulse()
+        } catch (e: Exception) {
+            actionText.text = "Could not start Nova: ${e.message}"
+        }
+    }
+
+    private fun stopNova() {
+        stopService(Intent(this, NovaWakeService::class.java).setAction(NovaWakeService.ACTION_STOP))
+        serviceRunning = false
+        setStatus("Ready", boost = false)
+        actionText.text = "Say “Hey Nova” to begin"
+        stopPulse()
+    }
+
+    private fun updateState() {
+        if (!serviceRunning) {
+            status.text = if (LocalModelManager.isInstalled(this)) "Ready" else "Model not loaded"
+            actionText.text = if (LocalModelManager.isInstalled(this)) "Say “Hey Nova” to begin"
+            else "Tap the mic — Nova will guide you to download the model"
+        }
+    }
+
+    private fun startPulse() {
+        pulse?.cancel()
+        pulse = ObjectAnimator.ofFloat(micGlow, "alpha", 0.35f, 1f).apply {
+            duration = 1100
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.REVERSE
+            interpolator = LinearInterpolator()
+            start()
+        }
+    }
+
+    private fun stopPulse() {
+        pulse?.cancel()
+        micGlow.alpha = 1f
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == micPermissionCode && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+            toggleNova()
+        } else if (requestCode == micPermissionCode) {
+            actionText.text = "Microphone permission is required. Allow it in Settings → Apps → Nova → Permissions."
+        }
+    }
+
+    override fun onDestroy() {
+        stopPulse()
+        handler.removeCallbacksAndMessages(null)
+        super.onDestroy()
+    }
 }
